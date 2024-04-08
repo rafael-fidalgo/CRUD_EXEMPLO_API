@@ -1,56 +1,82 @@
-from flask import Flask, jsonify, request
-import galaxias_BD
+import sqlite3
 
-app = Flask(__name__)
+# abaixo será definido as funções que serão utilizadas  dentro das rotas para realização do CRUD.
 
-##Rota para retornar todas as galaxias
-@app.route("/galaxias", methods =["GET"])
-def get_galaxias():
-    lista_galaxias = galaxias_BD.listar_galaxias()
-    return jsonify(lista_galaxias)
 
-##Rota para retornar uma galaxia
-@app.route("/galaxia/<int:id>", methods=["GET"])
-def obter_galaxia_route(id): 
-    galaxia = galaxias_BD.retornar_galaxia(id)
+# função para criar uma tabela onde é definido as seguintes colunas: um id como chave primaria, além do nome, estrela principal, uma imagem e a distância.
+def criar_tabela():
+    conn = sqlite3.connect('galaxias.db')
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS galaxias
+                (id INTEGER PRIMARY KEY, nome TEXT, estrelaPrincipal TEXT, distancia INTEGER, imagem TEXT)''')
+    conn.commit()
+    conn.close()
+
+
+#função que permite criação de uma nova galaxia no banco de dados.
+def inserir_galaxia(nome, estrelaPrincipal, distancia, imagem):
+    conn = sqlite3.connect('galaxias.db')
+    cursor = conn.cursor()
+    cursor.execute('INSERT INTO galaxias (nome, estrelaPrincipal, distancia, imagem) VALUES (?, ?, ?, ?)', (nome, estrelaPrincipal, distancia, imagem))
+    conn.commit()
+    conn.close()
+
+
+#função que permite exclusão de uma nova galaxia no banco de dados.
+def deletar_galaxia(id):
+        conn = sqlite3.connect('galaxias.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM galaxias WHERE id = ?', (id,))
+        galaxia = cursor.fetchone()
+        if galaxia:
+            cursor.execute('DELETE FROM galaxias WHERE id = ?', (id,))
+        conn.commit()
+        conn.close()
+
+#função que permite atualização de todos os dados de uma nova galaxia no banco de dados.        
+def atualizar_galaxia(id, nome, estrelaPrincipal, distancia, imagem):
+    conn = sqlite3.connect('galaxias.db')
+    cursor = conn.cursor()
+    cursor.execute('UPDATE galaxias SET nome = ?, estrelaPrincipal = ?, distancia = ?, imagem = ? WHERE id = ?', (nome, estrelaPrincipal, distancia, imagem, id))
+    conn.commit()
+    conn.close()
+
+#função que possibilita listar uma galaxia especifica dentro de um banco de dados a partir de um id.
+def retornar_galaxia(id):
+    conn = sqlite3.connect('galaxias.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM galaxias WHERE id = ?', (id,))
+    galaxia = cursor.fetchone()
+    conn.close()
     if galaxia:
-        return jsonify(galaxia)
-    else:
-        return jsonify({"message": "Galaxia não encontrada"}), 404
+        return {
+            'id': galaxia[0],
+            'nome': galaxia[1],
+            'estrelaPrincipal': galaxia[2],
+            'distancia': galaxia[3],
+            'imagem': galaxia[4]
+        }
+    return {}
 
-@app.route("/galaxia", methods=["POST"])
-def adicionar_galaxia_route():
-    dados = request.json
-    if not dados or 'nome' not in dados or 'estrelaPrincipal' not in dados or 'distancia' not in dados or 'imagem' not in dados:
-        return jsonify({"message": "Dados incompletos ou no formato inválido"}), 400
-    
-    nova_galaxia = galaxias_BD.inserir_galaxia(dados['nome'], dados['estrelaPrincipal'], dados['distancia'], dados['imagem'])
-    return jsonify({"message": "Galaxia adicionada com sucesso", "id": nova_galaxia}), 201
+#função que possibilita listar todas as galaxias dentro de um banco de dados. 
+def listar_galaxias():
+    resultado = []
+    conn = sqlite3.connect('galaxias.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM galaxias')
+    galaxias = cursor.fetchall()
+    conn.close()
+    #Como precisamos devolver em JSON já não deixaremos em tuplas e sim em lista por isso percorremos em for as tuplas e as deixamos em uma lista
+    for item in galaxias:
+        galaxia = {
+            'id': item[0],
+            'nome': item[1],
+            'estrelaPrincipal': item[2],
+            'distancia': item[3],
+            'imagem': item[4]
+        }
+        resultado.append(galaxia)
 
-
-#Rota para atualizar uma galaxia
-@app.route("/atualizar/<int:id>", methods = ["PUT"])
-def put_galaxia(id):
-    galaxia_id = galaxias_BD.retornar_galaxia(id)
-    if galaxia_id:
-        dados_atualizados = request.json
-        dados_atualizados["id"] = id
-        galaxias_BD.atualizar_galaxia(**dados_atualizados)
-        return jsonify(dados_atualizados)
-    else:
-        return jsonify({"message": "Personagem não encontrado"}),404
-
-@app.route("/delete/<int:id>", methods=["DELETE"])
-def deletar_galaxia_route(id): 
-    galaxia = galaxias_BD.retornar_galaxia(id)
-    if galaxia:
-       galaxias_BD.deletar_galaxia(id)
-       return jsonify({"message":"Galaxia removida com sucesso"})
-    else:
-       return jsonify({"message":"Galaxia não encontrada"}), 404
+    return resultado
 
 
-
-if __name__ == '__main__':
-    galaxias_BD.criar_tabela()
-    app.run(debug=True)

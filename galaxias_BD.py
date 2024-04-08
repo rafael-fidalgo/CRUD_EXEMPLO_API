@@ -1,22 +1,28 @@
 import sqlite3
 
+# abaixo será definido as funções que serão utilizadas  dentro das rotas para realização do CRUD.
+
+
+# função para criar uma tabela onde é definido as seguintes colunas: um id como chave primaria, além do nome, estrela principal, uma imagem e a distância.
 def criar_tabela():
     conn = sqlite3.connect('galaxias.db')
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS galaxias
-                  (id INTEGER PRIMARY KEY, nome TEXT, estrelaPrincipal TEXT, distancia INTEGER, imagem TEXT)''')
+                (id INTEGER PRIMARY KEY, nome TEXT, estrelaPrincipal TEXT, distancia INTEGER, imagem TEXT)''')
     conn.commit()
     conn.close()
 
+
+#função que permite criação de uma nova galaxia no banco de dados.
 def inserir_galaxia(nome, estrelaPrincipal, distancia, imagem):
     conn = sqlite3.connect('galaxias.db')
     cursor = conn.cursor()
     cursor.execute('INSERT INTO galaxias (nome, estrelaPrincipal, distancia, imagem) VALUES (?, ?, ?, ?)', (nome, estrelaPrincipal, distancia, imagem))
     conn.commit()
-    novo_id = cursor.lastrowid
     conn.close()
-    return novo_id
 
+
+#função que permite exclusão de uma nova galaxia no banco de dados.
 def deletar_galaxia(id):
         conn = sqlite3.connect('galaxias.db')
         cursor = conn.cursor()
@@ -26,6 +32,8 @@ def deletar_galaxia(id):
             cursor.execute('DELETE FROM galaxias WHERE id = ?', (id,))
         conn.commit()
         conn.close()
+
+#função que permite atualização de todos os dados de uma nova galaxia no banco de dados.        
 def atualizar_galaxia(id, nome, estrelaPrincipal, distancia, imagem):
     conn = sqlite3.connect('galaxias.db')
     cursor = conn.cursor()
@@ -33,6 +41,7 @@ def atualizar_galaxia(id, nome, estrelaPrincipal, distancia, imagem):
     conn.commit()
     conn.close()
 
+#função que possibilita listar uma galaxia especifica dentro de um banco de dados a partir de um id.
 def retornar_galaxia(id):
     conn = sqlite3.connect('galaxias.db')
     cursor = conn.cursor()
@@ -49,6 +58,7 @@ def retornar_galaxia(id):
         }
     return {}
 
+#função que possibilita listar todas as galaxias dentro de um banco de dados. 
 def listar_galaxias():
     resultado = []
     conn = sqlite3.connect('galaxias.db')

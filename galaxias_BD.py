@@ -13,7 +13,9 @@ def inserir_galaxia(nome, estrelaPrincipal, distancia, imagem):
     cursor = conn.cursor()
     cursor.execute('INSERT INTO galaxias (nome, estrelaPrincipal, distancia, imagem) VALUES (?, ?, ?, ?)', (nome, estrelaPrincipal, distancia, imagem))
     conn.commit()
+    novo_id = cursor.lastrowid
     conn.close()
+    return novo_id
 
 def deletar_galaxia(id):
         conn = sqlite3.connect('galaxias.db')

@@ -9,7 +9,7 @@ def get_galaxias():
     lista_galaxias = galaxias_BD.listar_galaxias()
     return jsonify(lista_galaxias)
 
-##Rota para retornar um personagem
+##Rota para retornar uma galaxia
 @app.route("/galaxia/<int:id>", methods=["GET"])
 def obter_galaxia_route(id): 
     galaxia = galaxias_BD.retornar_galaxia(id)
@@ -18,7 +18,17 @@ def obter_galaxia_route(id):
     else:
         return jsonify({"message": "Galaxia não encontrada"}), 404
 
-#Rota para atualizar um personagem
+@app.route("/galaxia", methods=["POST"])
+def adicionar_galaxia_route():
+    dados = request.json
+    if not dados or 'nome' not in dados or 'estrelaPrincipal' not in dados or 'distancia' not in dados or 'imagem' not in dados:
+        return jsonify({"message": "Dados incompletos ou no formato inválido"}), 400
+    
+    nova_galaxia = galaxias_BD.inserir_galaxia(dados['nome'], dados['estrelaPrincipal'], dados['distancia'], dados['imagem'])
+    return jsonify({"message": "Galaxia adicionada com sucesso", "id": nova_galaxia}), 201
+
+
+#Rota para atualizar uma galaxia
 @app.route("/atualizar/<int:id>", methods = ["PUT"])
 def put_galaxia(id):
     galaxia_id = galaxias_BD.retornar_galaxia(id)

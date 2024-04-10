@@ -19,7 +19,9 @@ def inserir_galaxia(nome, estrelaPrincipal, distancia, imagem):
     cursor = conn.cursor()
     cursor.execute('INSERT INTO galaxias (nome, estrelaPrincipal, distancia, imagem) VALUES (?, ?, ?, ?)', (nome, estrelaPrincipal, distancia, imagem))
     conn.commit()
+    novo_id = cursor.lastrowid  # Obter o ID da última linha inserida
     conn.close()
+    return novo_id
 
 
 #função que permite exclusão de uma nova galaxia no banco de dados.
